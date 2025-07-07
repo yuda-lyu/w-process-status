@@ -43,6 +43,13 @@ function isWindows() {
  *     //   },
  *     //   {
  *     //     name: 'chrome.exe',
+ *     //     pid: 11648,
+ *     //     ram: 2300,
+ *     //     username: '{username}',
+ *     //     status: 'stopped'
+ *     //   }
+ *     //   {
+ *     //     name: 'chrome.exe',
  *     //     pid: 4984,
  *     //     ram: 211720,
  *     //     username: '{username}',

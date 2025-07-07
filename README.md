@@ -48,6 +48,13 @@ async function test() {
     //     username: '{username}',
     //     status: 'running'
     //   },
+    //   {
+    //     name: 'chrome.exe',
+    //     pid: 11648,
+    //     ram: 2300,
+    //     username: '{username}',
+    //     status: 'stopped'
+    //   }
     //   ...
     // ]
 
