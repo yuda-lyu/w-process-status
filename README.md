@@ -12,7 +12,7 @@ A tool for processStatus.
 To view documentation or get support, visit [docs](https://yuda-lyu.github.io/w-process-status/global.html).
 
 ## Core
-> `w-process-status` is based on the `pykrige` in `python`, and only run in `Windows`.
+> `w-process-status` is based on the `psutil` in `python`, and only run in `Windows`.
 
 ## Installation
 ### Using npm(ES6 module):
