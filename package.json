@@ -1,0 +1,32 @@
+{
+  "name": "w-process-status",
+  "version": "1.0.1",
+  "main": "dist/w-process-status.umd.js",
+  "dependencies": {
+    "lodash-es": "^4.17.21",
+    "wsemi": "^1.8.11"
+  },
+  "devDependencies": {
+    "w-package-tools": "^1.1.2"
+  },
+  "scripts": {
+    "postinstall": "node scripts/install.mjs",
+    "test": "mocha --parallel --timeout 60000",
+    "deploy": "gh-pages -d docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuda-lyu/w-process-status.git"
+  },
+  "keywords": [
+    "package",
+    "tool",
+    "psutil",
+    "process",
+    "status",
+    "windows",
+    "nodejs"
+  ],
+  "author": "yuda-lyu(semisphere)",
+  "license": "MIT"
+}
