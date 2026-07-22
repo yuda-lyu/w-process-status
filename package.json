@@ -1,13 +1,13 @@
 {
   "name": "w-process-status",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "dist/w-process-status.umd.js",
   "dependencies": {
     "lodash-es": "^4.17.21",
-    "wsemi": "^1.8.11"
+    "wsemi": "^1.8.66"
   },
   "devDependencies": {
-    "w-package-tools": "^1.1.2"
+    "w-package-tools": "^1.1.11"
   },
   "scripts": {
     "postinstall": "node scripts/install.mjs",
