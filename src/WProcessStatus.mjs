@@ -7,11 +7,8 @@ import j2o from 'wsemi/src/j2o.mjs'
 import isestr from 'wsemi/src/isestr.mjs'
 import isarr from 'wsemi/src/isarr.mjs'
 import cstr from 'wsemi/src/cstr.mjs'
-import fsIsFile from 'wsemi/src/fsIsFile.mjs'
 import execProcess from 'wsemi/src/execProcess.mjs'
-
-
-let fdSrv = path.resolve()
+import autoDownloadFiles from './autoDownloadFiles.mjs'
 
 
 function isWindows() {
@@ -78,29 +75,14 @@ async function WProcessStatus(name) {
         return Promise.reject('name is not an effective string')
     }
 
-    //fnExe
-    let fnExe = `processStatus.exe`
-
-    //fdExe
-    let fdExe = ''
-    if (true) {
-        let fdExeSrc = `${fdSrv}/src/`
-        let fdExeNM = `${fdSrv}/node_modules/w-process-status/src/`
-        if (fsIsFile(`${fdExeSrc}${fnExe}`)) {
-            fdExe = fdExeSrc
-        }
-        else if (fsIsFile(`${fdExeNM}${fnExe}`)) {
-            fdExe = fdExeNM
-        }
-        else {
-            return Promise.reject('can not find folder for processStatus')
-        }
-    }
-    // console.log('fdExe', fdExe)
-
-    //prog
-    let prog = `${fdExe}${fnExe}`
+    //prog, 自動定位processStatus.exe, 無檔案(安裝時npm封鎖scripts致postinstall未執行)則自動下載
+    let { fpExe } = await autoDownloadFiles()
+    let prog = fpExe
     // console.log('prog', prog)
+
+    //fdExe, prog所在資料夾, 供暫存json檔使用
+    let fdExe = `${path.dirname(prog)}/`
+    // console.log('fdExe', fdExe)
 
     //id
     let id = genID()
