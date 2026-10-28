@@ -1,38 +1,31 @@
-import path from 'path'
-import fsIsFile from 'wsemi/src/fsIsFile.mjs'
-import fsIsFolder from 'wsemi/src/fsIsFolder.mjs'
-import downloadFiles from './downloadFiles.mjs'
+import ensureBins from './ensureBins.mjs'
 
 
 //fnExe, processStatus執行檔名稱
 let fnExe = 'processStatus.exe'
 
 
-//pmDownload, 下載中之Promise, 供併發呼叫共用同一次下載, 避免同時多次下載寫入同一批檔案
-let pmDownload = null
-
-
 /**
- * 自動定位processStatus.exe，若無檔案則自動下載，回傳processStatus.exe的絕對路徑
+ * 取得processStatus.exe，回傳processStatus.exe的絕對路徑
  *
- * 依序偵測當前工作路徑的src/與node_modules/w-process-status/src/，皆無processStatus.exe時，
- * 代表安裝時npm封鎖scripts致postinstall未執行，故自動調用downloadFiles重新下載
+ * 經ensureBins依bin/manifest.json之SHA-256與大小校驗後取得(快取、鏡像、GitHub釘選提交)，首次使用才下載，安裝時不下載，
+ * 離線與內網之用法(W_BIN_CACHE、W_BIN_MIRROR、W_BIN_OFFLINE)見README〈外部執行檔〉
  *
  * 供w-process-status自身與其他依賴w-process-status的套件調用，無須各自實作偵測與下載邏輯
  *
  * 因processStatus.exe只能用於Windows作業系統，故調用前須自行檢核作業系統
  *
- * @returns {Promise} 回傳Promise，resolve回傳執行檔路徑物件，內含fpExe為processStatus.exe的絕對路徑字串，reject回傳錯誤訊息
+ * @returns {Promise} 回傳Promise，resolve回傳執行檔路徑物件，內含fpExe為processStatus.exe的絕對路徑字串，reject回傳帶code之Error(E_OFFLINE_MISSING、E_HASH_MISMATCH等)
  * @example
  * import autoDownloadFiles from 'w-process-status/src/autoDownloadFiles.mjs'
  *
  * async function test() {
  *
- *     //autoDownloadFiles, 無processStatus.exe時自動下載, 下載失敗則reject
+ *     //autoDownloadFiles, 無快取時自動取得, 取得或校驗失敗則reject
  *     let { fpExe } = await autoDownloadFiles()
  *
  *     console.log('fpExe', fpExe)
- *     // fpExe D:\xxx\node_modules\w-process-status\src\processStatus.exe
+ *     // fpExe D:\xxx\node_modules\w-process-status\bin-cache\<sha256>\processStatus.exe
  * }
  * test()
  *     .catch((err) => {
@@ -42,53 +35,11 @@ let pmDownload = null
  */
 async function autoDownloadFiles() {
 
-    //fdSrv, 於調用時取當前工作路徑
-    let fdSrv = path.resolve()
-
-    //fdBaseSelf, fdBaseNM, processStatus.exe可能所在資料夾(開發套件本身時於cwd的src/, 被安裝為相依套件時於node_modules/w-process-status/src/)
-    let fdBaseSelf = `${fdSrv}/src/`
-    let fdBaseNM = `${fdSrv}/node_modules/w-process-status/src/`
-
-    //fdBase
-    let fdBase = ''
-    if (fsIsFile(`${fdBaseSelf}${fnExe}`)) {
-        fdBase = fdBaseSelf
-    }
-    else if (fsIsFile(`${fdBaseNM}${fnExe}`)) {
-        fdBase = fdBaseNM
-    }
-    else {
-
-        //fdBaseDL, 下載落點, 有node_modules/w-process-status/代表為被安裝之相依套件, 否則為套件自身
-        let fdBaseDL = fsIsFolder(`${fdSrv}/node_modules/w-process-status/`) ? fdBaseNM : fdBaseSelf
-
-        //downloadFiles, 無processStatus.exe代表安裝時npm封鎖scripts致postinstall未執行, 故於此重新執行下載,
-        //併發呼叫共用同一個下載Promise, 避免重複下載
-        if (pmDownload === null) {
-            pmDownload = downloadFiles(fdBaseDL)
-                .finally(() => {
-
-                    //下載結束(成敗皆然)歸零, 使下次呼叫重新依檔案是否存在判定; 若只於失敗時歸零, 下載成功後檔案被移除(重裝套件、防毒隔離)或程序切換工作路徑時, 會沿用已resolve之Promise而不再下載
-                    pmDownload = null
-
-                })
-        }
-        await pmDownload
-
-        //check
-        if (fsIsFile(`${fdBaseDL}${fnExe}`)) {
-            fdBase = fdBaseDL
-        }
-
-    }
-
-    //check
-    if (fdBase === '') {
-        return Promise.reject('can not find processStatus.exe')
-    }
+    //ensureBins, 併發呼叫由其共用同一次取得
+    let bins = await ensureBins({ names: fnExe })
 
     //fpExe
-    let fpExe = path.resolve(fdBase, fnExe)
+    let fpExe = bins[fnExe]
 
     return {
         fpExe,

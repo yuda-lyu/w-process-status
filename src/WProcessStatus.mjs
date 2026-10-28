@@ -1,4 +1,5 @@
 import path from 'path'
+import os from 'os'
 import fs from 'fs'
 import process from 'process'
 import genID from 'wsemi/src/genID.mjs'
@@ -9,6 +10,7 @@ import isarr from 'wsemi/src/isarr.mjs'
 import cstr from 'wsemi/src/cstr.mjs'
 import execProcess from 'wsemi/src/execProcess.mjs'
 import autoDownloadFiles from './autoDownloadFiles.mjs'
+import ensureBins from './ensureBins.mjs'
 
 
 function isWindows() {
@@ -75,23 +77,22 @@ async function WProcessStatus(name) {
         return Promise.reject('name is not an effective string')
     }
 
-    //prog, 自動定位processStatus.exe, 無檔案(安裝時npm封鎖scripts致postinstall未執行)則自動下載
+    //prog, 經ensureBins取得processStatus.exe(依bin/manifest.json校驗, 首次使用時自鏡像或GitHub取得, 之後自快取取得)
     let { fpExe } = await autoDownloadFiles()
     let prog = fpExe
     // console.log('prog', prog)
 
-    //fdExe, prog所在資料夾, 供暫存json檔使用
-    let fdExe = `${path.dirname(prog)}/`
-    // console.log('fdExe', fdExe)
+    //fdTmp, 暫存json檔寫作業系統暫存資料夾, 不寫prog所在之快取資料夾(快取內容由清單校驗, 且可能為共用或唯讀)
+    let fdTmp = os.tmpdir()
 
     //id
     let id = genID()
 
     //fpIn
-    let fpIn = `${fdExe}_${id}_fpIn.json`
+    let fpIn = path.join(fdTmp, `_${id}_fpIn.json`)
 
-    //fpIn
-    let fpOut = `${fdExe}_${id}_fpOut.json`
+    //fpOut
+    let fpOut = path.join(fdTmp, `_${id}_fpOut.json`)
 
     //rIn
     let rIn = {
@@ -157,6 +158,10 @@ async function WProcessStatus(name) {
 
     return rs
 }
+
+
+//ensureBins, 供部署前預先取得processStatus.exe(WProcessStatus.ensureBins), 見README〈外部執行檔〉
+WProcessStatus.ensureBins = ensureBins
 
 
 export default WProcessStatus

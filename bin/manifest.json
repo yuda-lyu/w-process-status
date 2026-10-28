@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "pkg": "w-process-status",
+  "mode": "pinned",
+  "repo": "yuda-lyu/w-process-status",
+  "commit": "38dd758fb0aca5f811fee5b26a56f47386a3d600",
+  "files": [
+    {
+      "name": "processStatus.exe",
+      "path": "bin/processStatus.exe",
+      "sha256": "3e9dd65b31ce1286d9558719ca36f7752f0d04280e7e6e6513fa6a42597ff1b8",
+      "size": 7609728
+    }
+  ]
+}

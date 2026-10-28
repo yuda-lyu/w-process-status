@@ -2,6 +2,11 @@ node_modules
 srcPython/build
 srcPython/dist
 src/processStatus.exe
+/bin/*
+!/bin/manifest.json
+/bin-cache/
+test/_tmp
+sgud
 .agents
 .opencode
 .claude
