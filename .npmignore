@@ -6,7 +6,6 @@ src/processStatus.exe
 !/bin/manifest.json
 /bin-cache/
 test/_tmp
-sgud
 .agents
 .opencode
 .claude
