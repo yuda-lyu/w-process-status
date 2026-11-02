@@ -15,5 +15,6 @@
 - 規則: `sgud/rule/rulebook.md` R-BIN-EXE-01.
 - 測試: `test/unit-binManifest.test.mjs`(T1、T2、S2、D1/E2)、`test/unit-ensureBins.test.mjs`(T3~T7、環境變數、預設快取、`autoDownloadFiles`;本機 HTTP 127.0.0.1:8861)、`test/WProcessStatus.test.mjs`.T8 不適用(非主幹模式).
 - 驗證(bin-procstat,2026-10-28 最終碼): 修前紅(`bin/manifest.json` 缺、`src/ensureBins.mjs` 缺、`npm pack` 含 `bin/processStatus.exe`、`downloadFiles.mjs`/`install.mjs`/`postinstall` 仍在)、修後 `npm test` 3 檔 26 passing、0 failing;變異 18 項(清單、`.npmignore`、`ensureBins`、`autoDownloadFiles`、`postinstall`、自寫下載、匯出)全被抓(首輪 15 紅、存活之 3 項為測試之缺口——釘選提交只與清單自身比、`autoDownloadFiles` 之測試可悄悄連上真 GitHub、匯出無案——補測試後 3/3 紅);重建 UMD(於 `./tmp`)載入並經本地鏡像實跑成功;另以真 GitHub 單次冒煙(非測試套件)確認釘選提交網址回傳之位元與清單 sha256 相符.未經第三方外審(本輪未列外審).細節見主控任務 20261028054319 `agent-out/bin-procstat-修正報告.md`.
+- npm 包檢查(2026-11-02,pk-process-status): `test/unit-binManifest.test.mjs` 之打包檢查已改為 dspec `自有套件之npm發布範圍.md` 原則 2〈套件測試之 npm 包檢查〉口徑——不得入包只列執行檔/壓縮檔、`bin/` 除 manifest 外之檔、`CLAUDE*.md`、`tmp/`、`test/_tmp/`、`.env`;`sgud/` 三檔、`main`、`src/*.mjs` 須隨包;未設大小上限(執行期 `src/`+`dist/`+`bin/` 合計 280,208 B).`.npmignore` 首段為 `.gitignore` 之抄錄,其後僅第 1 條排除項(`src/processStatus.exe`、`/bin/*`、`!/bin/manifest.json`)並加註,不排除 `sgud/`;打包 75 檔(`sgud/` 3 檔).`npm test` 3 檔 27 passing、0 failing.
 - 待辦: 主控發布新版(含 `dist` 重建);舊版淘汰後移除 `src/processStatus.exe`(另案).
 - 已知限制: 見 R-BIN-EXE-01〈已知限制〉.

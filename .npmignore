@@ -1,15 +1,18 @@
 node_modules
-srcPython/build
-srcPython/dist
-src/processStatus.exe
-/bin/*
-!/bin/manifest.json
 /bin-cache/
 test/_tmp
 .agents
-.opencode
-.claude
 CLAUDE*.md
 AGENTS*.md
 .env
 tmp
+.opencode
+.claude
+srcPython/build
+srcPython/dist
+
+# 以下為 npm 包專屬之排除項(dspec 自有套件之npm發布範圍 原則2、原則3;首段為 .gitignore 之完整抄錄,.gitignore 改動時須同步)
+# 第 1 條 外部執行檔與其附屬: 舊版相容之 src/processStatus.exe(S2)、bin/ 下之執行檔(僅保留 manifest.json, S1)
+src/processStatus.exe
+/bin/*
+!/bin/manifest.json

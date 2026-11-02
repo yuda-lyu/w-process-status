@@ -73,17 +73,46 @@ describe(`bin/manifest.json`, function() {
         assert.strict.deepStrictEqual([b.sha256, b.size], [a.sha256, a.size])
     })
 
-    it(`should not pack external executables into the npm package, only bin/manifest.json (S1, T1)`, function() {
-        //暫存夾內放一個探針檔, 確認test/_tmp不入包(測試平行執行時他檔之暫存檔不得影響本案)
-        fs.mkdirSync(fdt, { recursive: true })
-        fs.writeFileSync(`${fdt}/probe.exe`, 'x')
-        let r = JSON.parse(execSync('npm pack --dry-run --json', { encoding: 'utf8', windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] }))
-        let info = Array.isArray(r) ? r[0] : Object.values(r)[0] //npm 11以前為陣列, npm 12起為以套件名為鍵之物件
-        let fps = info.files.map((v) => v.path)
-        assert.strict.deepStrictEqual(fps.filter((v) => /\.(exe|dll|msi|zip|7z|\d{3})$/i.test(v)), [])
-        assert.strict.deepStrictEqual(fps.filter((v) => v.startsWith('bin/') || v.startsWith('bin-cache/')), ['bin/manifest.json'])
-        assert.strict.equal(fps.includes('src/processStatus.exe'), false)
-        assert.strict.deepStrictEqual(fps.filter((v) => v.startsWith('test/_tmp/') || v.startsWith('sgud/')), [])
+    //規格: 自有套件之npm發布範圍(dspec) 原則1、原則2〈套件測試之 npm 包檢查〉(2026-11-02使用者裁示A)
+    //npm包＝git版控之內容: 「不得入包」只列外部執行檔與壓縮檔, bin/除manifest.json外之檔, CLAUDE*.md, tmp/, test/_tmp/, .env;
+    //sgud/, docs/, test/, toolg/, script.txt, 開發設定檔等依原則1隨包, 不得斷言其不在
+    describe(`npm pack --dry-run (dspec 自有套件之npm發布範圍 原則2〈套件測試之 npm 包檢查〉)`, function() {
+
+        let fps = []
+
+        before(function() {
+            //暫存夾內放一個探針檔, 確認test/_tmp不入包(測試平行執行時他檔之暫存檔不得影響本案)
+            fs.mkdirSync(fdt, { recursive: true })
+            fs.writeFileSync(`${fdt}/probe.exe`, 'x')
+            let r = JSON.parse(execSync('npm pack --dry-run --json', { encoding: 'utf8', windowsHide: true, stdio: ['ignore', 'pipe', 'ignore'] }))
+            let info = Array.isArray(r) ? r[0] : Object.values(r)[0] //npm 11以前為陣列, npm 12起為以套件名為鍵之物件
+            fps = info.files.map((v) => v.path)
+        })
+
+        it(`should not pack external executables, archives, bin/ files other than manifest.json, CLAUDE*.md, tmp/, test/_tmp/ nor .env (S1, T1; 原則2①)`, function() {
+            assert.strict.equal(fps.length > 0, true)
+            assert.strict.deepStrictEqual(fps.filter((v) => /\.(exe|dll|node|msi|zip|7z|gz|tgz|\d{3})$/i.test(v)), [])
+            assert.strict.deepStrictEqual(fps.filter((v) => v.startsWith('bin/') || v.startsWith('bin-cache/')), ['bin/manifest.json'])
+            assert.strict.equal(fps.includes('src/processStatus.exe'), false)
+            assert.strict.deepStrictEqual(fps.filter((v) => /(^|\/)CLAUDE[^/]*\.md$/.test(v) || /(^|\/)tmp\//.test(v) || v.startsWith('test/_tmp/') || /(^|\/)\.env$/.test(v)), [])
+        })
+
+        it(`should pack sgud/ and the runtime src/ and dist/ files like git-tracked content (原則1、原則4)`, function() {
+            //sgud/隨包(原則1, 原則4一律不排除)
+            for (let fp of ['sgud/state/state.md', 'sgud/rule/rulebook.md', 'sgud/exp/experience.md']) {
+                assert.strict.equal(fps.includes(fp), true, `${fp} is not packed`)
+            }
+
+            //執行期之src/(執行檔除外)與dist/一律不排除(原則4)
+            let pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'))
+            assert.strict.equal(fps.includes(pkg.main), true, `${pkg.main} (package.json main) is not packed`)
+            let fpsSrc = fs.readdirSync('./src').filter((v) => v.endsWith('.mjs')).map((v) => `src/${v}`)
+            assert.strict.equal(fpsSrc.length > 0, true)
+            for (let fp of fpsSrc) {
+                assert.strict.equal(fps.includes(fp), true, `${fp} is not packed`)
+            }
+        })
+
     })
 
 })
