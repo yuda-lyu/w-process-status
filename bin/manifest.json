@@ -3,7 +3,7 @@
   "pkg": "w-process-status",
   "mode": "pinned",
   "repo": "yuda-lyu/w-process-status",
-  "commit": "396bc2873469bfc61df5e958b5d7fbaf91255f4e",
+  "commit": "81284aaebbb9db5a9834273e3f2e2c751bede57f",
   "files": [
     {
       "name": "processStatus.exe",

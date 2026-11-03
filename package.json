@@ -1,6 +1,6 @@
 {
   "name": "w-process-status",
-  "version": "1.0.34",
+  "version": "1.0.35",
   "main": "dist/w-process-status.umd.js",
   "dependencies": {
     "wsemi": "^1.9.48"
