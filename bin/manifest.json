@@ -8,8 +8,8 @@
     {
       "name": "processStatus.exe",
       "path": "bin/processStatus.exe",
-      "sha256": "2f4f2ae5dbe63abb3c92a460374f70cc80b34aa2f677ae2540c8c4be2d204759",
-      "size": 8681283
+      "sha256": "8faa78536f9cd06242c76dfd8cf199f955307dad286b5d6a8cfb1a4b9aa4875d",
+      "size": 7824932
     }
   ]
 }
