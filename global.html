@@ -130,7 +130,7 @@
 
     
 
-    <h4 class="name" id="WProcessStatus"><span class="type-signature type-signature-async">(async) </span>WProcessStatus<span class="signature">(name)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
+    <h4 class="name" id="WProcessStatus"><span class="type-signature type-signature-async">(async) </span>WProcessStatus<span class="signature">(name, opt<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {Promise}</span></h4>
 
     
 
@@ -140,13 +140,19 @@
 <dl class="details">
     
     <dt class="tag-description">Description:</dt>
-    <dd class="tag-description"><ul class="dummy"><li><p>列出指定程序名稱的pid與狀態之清單</p></li></ul></dd>
+    <dd class="tag-description"><ul class="dummy"><li><p>列出指定程序名稱的pid與狀態之清單</p>
+<p>各項除name、pid、ram、username、status外，另含exe、ppid、parentAlive，供使用端判定可回收之程序(例如限定自家路徑且父行程已死者)：
+exe為執行檔路徑，無權限或無路徑(如System)時為null；ppid為建立該程序之父行程pid，無法取得時為null，Windows不會於父行程結束後更新ppid，故ppid所指之行程可能已不存在或pid已被其他行程重用；
+parentAlive為父行程是否存活(判定同psutil之Process.parent()：比對ppid所指行程與本程序之建立時間)，true為存活，false為父行程已結束或其pid已被重用，
+null為無法判定(查詢時發生例外，如無權限)或本無父行程(ppid為0或自身，如System與System Idle Process)。使用端應只將parentAlive為false者視為孤兒，null不可視為孤兒。
+建立時間取自系統時鐘，父子建立之間若系統時間被往回調整，存活之父行程可能被誤判為false，請與exe等條件交叉確認後再處置。
+exe與parentAlive只對名稱相符者查詢，其值與呼叫當下之權限有關。</p></li></ul></dd>
     
 
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="WProcessStatus.mjs.html">WProcessStatus.mjs</a>, <a href="WProcessStatus.mjs.html#line67">line 67</a>
+        <a href="WProcessStatus.mjs.html">WProcessStatus.mjs</a>, <a href="WProcessStatus.mjs.html#line90">line 90</a>
     </li></ul></dd>
     
 
@@ -193,7 +199,7 @@
 
     <h5 class="h5-examples">Example</h5>
     
-    <pre class="prettyprint"><code>async function test() {    let name = 'chrome.exe'    let opt = {}    let rs = await WProcessStatus(name, opt)    console.log('rs', rs)    // rs => [    //   {    //     name: 'chrome.exe',    //     pid: 400,    //     ram: 169404,    //     username: '{username}',    //     status: 'running'    //   },    //   {    //     name: 'chrome.exe',    //     pid: 11648,    //     ram: 2300,    //     username: '{username}',    //     status: 'stopped'    //   }    //   {    //     name: 'chrome.exe',    //     pid: 4984,    //     ram: 211720,    //     username: '{username}',    //     status: 'running'    //   },    //   ...    // ]}test()    .catch((err) => {        console.log(err)    })</code></pre>
+    <pre class="prettyprint"><code>async function test() {    let name = 'chrome.exe'    let opt = {}    let rs = await WProcessStatus(name, opt)    console.log('rs', rs)    // rs => [    //   {    //     name: 'chrome.exe',    //     pid: 400,    //     ram: 169404,    //     username: '{username}',    //     status: 'running',    //     exe: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',    //     ppid: 5124,    //     parentAlive: true    //   },    //   {    //     name: 'chrome.exe',    //     pid: 11648,    //     ram: 2300,    //     username: '{username}',    //     status: 'stopped',    //     exe: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',    //     ppid: 7740,    //     parentAlive: false    //   }    //   {    //     name: 'chrome.exe',    //     pid: 4984,    //     ram: 211720,    //     username: '{username}',    //     status: 'running',    //     exe: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',    //     ppid: 400,    //     parentAlive: true    //   },    //   ...    // ]    //逾時設定, 執行檔超過3000毫秒未完成即關閉並reject    let rs2 = await WProcessStatus(name, { timeout: 3000 })}test()    .catch((err) => {        console.log(err)    })</code></pre>
 
 
 
@@ -211,7 +217,11 @@
         <th>Type</th>
 
         
+        <th>Attributes</th>
+        
 
+        
+        <th>Default</th>
         
 
         <th class="last">Description</th>
@@ -237,10 +247,132 @@
             </td>
 
             
+                <td class="attributes">
+                
 
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                </td>
             
 
             <td class="description last"><p>輸入程序名稱字串</p></td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>opt</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>{}</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入設定物件，預設{}</p>
+                <h6>Properties</h6>
+                
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+        <th>Default</th>
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>timeout</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Number</span>
+
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+                <td class="default">
+                
+                    <code>null</code>
+                
+                </td>
+            
+
+            <td class="description last"><p>輸入執行檔逾時毫秒數，須為有效數字且大於0，逾時即關閉執行檔(含其子程序)並reject<code>timeout[Nms]:...</code>，未給或非預期之輸入(0、負數、Infinity、非數字字串、opt非物件等)皆視為不限時，預設null</p></td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
         </tr>
 
     
@@ -266,7 +398,7 @@
 
         
 <div class="param-desc">
-    <p>回傳Promise，resolve回傳成功訊息，reject回傳錯誤訊息</p>
+    <p>回傳Promise，resolve回傳清單陣列，各項含name、pid、ram、username、status、exe、ppid、parentAlive，reject回傳錯誤訊息；執行檔內部失敗時訊息帶上其回報之state(整理後至多200字元)，例如<code>output[] is not an array, state[error: ...]</code></p>
 </div>
 
 
@@ -636,7 +768,7 @@ test()
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Tue Nov 03 2026 00:28:29 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.5</a> on Tue Nov 03 2026 12:31:31 GMT+0800 (台北標準時間) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
 </footer>
 
 <script>prettyPrint();</script>
