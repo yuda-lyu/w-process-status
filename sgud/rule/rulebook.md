@@ -26,7 +26,7 @@
 
 ## R-PS-LIST-01 清單欄位 exe、ppid、parentAlive,opt.timeout 與失敗原因 state(Gitea #55;2026-11-03 pr55)
 
-- 依據: Gitea #55(liqproc):全域設定 §8.6 之殘留 chrome 回收須判定「執行檔路徑」與「父行程已死」,使用端原用 wmic,Windows 11 已無 wmic 而靜默不動作.範疇: 底層為 psutil 之程序資訊(本套件 `src/WProcessStatus.mjs` JSDoc 首句:列出指定程序名稱的 pid 與狀態之清單);「是否自家 chrome、是否回收」之判定仍留使用端.
+- 依據: Gitea #55(使用端):全域設定 §8.6 之殘留 chrome 回收須判定「執行檔路徑」與「父行程已死」,使用端原用 wmic,Windows 11 已無 wmic 而靜默不動作.範疇: 底層為 psutil 之程序資訊(本套件 `src/WProcessStatus.mjs` JSDoc 首句:列出指定程序名稱的 pid 與狀態之清單);「是否自家 chrome、是否回收」之判定仍留使用端.
 - 單一擁有者: 欄位值一律由 `srcPython/processStatus.py` 產生(`getExe`、`getPpid`、`getParentAlive`),JS 端不加工;`state` 之整理唯一在 `src/fmtState.mjs`(遮憑證用 wsemi `maskDiagText`,不另寫等價實作,診斷輸出與遮罩 D1);`opt.timeout` 之檢測唯一在 wsemi `execProcess`.
 - 規則:
   1. 清單既有欄位(`name`、`pid`、`ram`、`username`、`status`)不變,新增 `exe`、`ppid`、`parentAlive`.`exe` 只對名稱相符者查(放入 `process_iter` 之 attrs 會對全部行程查路徑,每次多約 2 秒);空字串(System)或例外(無權限)為 `null`.`ppid` 取不到為 `null`.
