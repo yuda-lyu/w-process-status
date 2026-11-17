@@ -2,6 +2,10 @@
 
 本檔記執行時之累積經驗,留給後續嘗試、執行、判斷.
 
+## 離線缺檔訊息改結構欄位(eb1,2026-11-18)
+
+- wsemi 1.9.64 起 `E_OFFLINE_MISSING` 訊息不帶值(V20):原案以訊息驗 sha256、大小、快取路徑,改驗 `err.missing[0]` 之 `sha256`、`size`、`cachePath`、`mirrorPath`(未設鏡像為 `null`)、`url`,訊息只斷言含檔名且不含 sha256 與路徑;未設鏡像之案驗不到鏡像位置,故另有設了(不存在之)鏡像之案驗 `mirrorPath`.`WProcessStatus` 對 `autoDownloadFiles()` 之失敗不攔截,Error 原樣(帶 `code`、`missing`)向上拒絕,無須改碼.
+
 ## 外部執行檔改造(bin-procstat,2026-10-28)
 
 - **UMD 主檔不可改為具名匯出**:`main` 為 `dist/w-process-status.umd.js`(rollup UMD,`module.exports = 函數`).為了「匯出 `ensureBins()`」若在 `WProcessStatus.mjs` 加具名 `export { ensureBins }`,rollup 會改輸出 `exports.default`/`exports.ensureBins`,`require('w-process-status')` 之既有用法即壞.作法:`src/ensureBins.mjs` 預設匯出,並於函數上掛 `WProcessStatus.ensureBins`.

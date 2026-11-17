@@ -204,7 +204,8 @@ describe(`ensureBins`, function() {
         assert.strict.equal(Buffer.compare(fs.readFileSync(`${mirror}/w-process-status/${sha256}/processStatus.exe`), bad), 0)
     })
 
-    it(`should reject offline with E_OFFLINE_MISSING naming the file, sha256, size and the cache path when there is no cache and no mirror (R08, T6, O3)`, async function() {
+    //規格 T6/O3(2026-11-18改)與〈輸入參數之檢測機制〉V20: 訊息只列缺哪個檔(名稱)與準備方法, 不帶sha256、大小、路徑與網址; 這些改放錯誤物件之結構欄位err.missing[](結構欄位屬契約, 不在「訊息」之限)
+    it(`should reject offline with E_OFFLINE_MISSING naming only the file in the message, and the sha256, size and cache path are in err.missing[] when there is no cache and no mirror (R08, T6, O3, V20)`, async function() {
         let cacheDir = cacheOf()
         let err = null
         await ensureBins({ ...base, cacheDir, offline: true, fetch: fetchBan })
@@ -212,16 +213,44 @@ describe(`ensureBins`, function() {
                 err = e
             })
         assert.strict.equal(err && err.code, 'E_OFFLINE_MISSING', err && err.message)
-        assert.strict.equal(err.message.includes('processStatus.exe'), true)
-        assert.strict.equal(err.message.includes(sha256), true)
-        assert.strict.equal(err.message.includes(String(entry.size)), true)
-        assert.strict.equal(err.message.includes(path.resolve(cacheDir, sha256, 'processStatus.exe')), true)
+
+        //訊息: 含缺檔之檔名; 不含sha256、快取路徑、快取資料夾
+        assert.strict.equal(err.message.includes('processStatus.exe'), true, err.message)
+        assert.strict.equal(err.message.includes(sha256), false, err.message)
+        assert.strict.equal(err.message.includes(path.resolve(cacheDir, sha256, 'processStatus.exe')), false, err.message)
+        assert.strict.equal(err.message.includes(path.resolve(cacheDir)), false, err.message)
+
+        //結構欄位err.missing[](原案由訊息驗之資訊: 哪個檔、sha256、大小、應放之快取路徑)
+        assert.strict.equal(Array.isArray(err.missing), true)
+        assert.strict.equal(err.missing.length, 1)
         assert.strict.equal(err.missing[0].name, 'processStatus.exe')
         assert.strict.equal(err.missing[0].sha256, sha256)
         assert.strict.equal(err.missing[0].size, entry.size)
         assert.strict.equal(err.missing[0].cachePath, path.resolve(cacheDir, sha256, 'processStatus.exe'))
+        assert.strict.equal(err.missing[0].mirrorPath, null) //未設鏡像
+        assert.strict.equal(err.missing[0].url, `https://raw.githubusercontent.com${urlPath}`) //自有檔之釘選提交網址
+        assert.strict.equal(err.missing[0].bundle, null) //單一檔非檔案組
         assert.strict.deepStrictEqual(fetchCalls, [])
         assert.strict.deepStrictEqual(listFiles(cacheDir), [])
+    })
+
+    it(`should give the mirror path in err.missing[] and not in the message when offline with a mirror that lacks the file (R08, T6, O3, O1, V20)`, async function() {
+        let cacheDir = cacheOf()
+        let mirror = mirrorOf(cacheDir) //不存在之鏡像
+        let err = null
+        await ensureBins({ ...base, cacheDir, mirror, offline: true, fetch: fetchBan })
+            .catch((e) => {
+                err = e
+            })
+        assert.strict.equal(err && err.code, 'E_OFFLINE_MISSING', err && err.message)
+        assert.strict.equal(err.missing.length, 1)
+        assert.strict.equal(err.missing[0].name, 'processStatus.exe')
+        assert.strict.equal(err.missing[0].cachePath, path.resolve(cacheDir, sha256, 'processStatus.exe'))
+        assert.strict.equal(err.missing[0].mirrorPath, path.resolve(mirror, 'w-process-status', sha256, 'processStatus.exe'))
+        assert.strict.equal(err.message.includes('processStatus.exe'), true, err.message)
+        assert.strict.equal(err.message.includes(path.resolve(mirror)), false, err.message)
+        assert.strict.equal(err.message.includes(sha256), false, err.message)
+        assert.strict.deepStrictEqual(fetchCalls, [])
     })
 
     it(`should re-acquire when the cached file was tampered with the same size (R09, T7, D4)`, async function() {

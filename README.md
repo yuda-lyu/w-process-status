@@ -34,7 +34,7 @@ npm i w-process-status
 - 環境變數：
   - `W_BIN_CACHE=<資料夾>`：快取改放 `<資料夾>/w-process-status/`(套件所在之 `node_modules` 唯讀時使用，多套件可共用同一資料夾)。
   - `W_BIN_MIRROR=<資料夾或 http(s) 網址>`：內網鏡像，先找鏡像再連 GitHub；結構為 `<鏡像>/w-process-status/<sha256>/processStatus.exe`。鏡像之檔同樣以清單校驗，不符即不用。
-  - `W_BIN_OFFLINE=1`：不連網，只用快取與鏡像；缺檔時錯誤(`E_OFFLINE_MISSING`)會列出缺哪個檔、sha256、大小與應放之完整路徑。
+  - `W_BIN_OFFLINE=1`：不連網，只用快取與鏡像；缺檔時 reject 帶 `code === 'E_OFFLINE_MISSING'` 之錯誤，其訊息只列缺哪個檔(檔名)與準備方法，不帶路徑與 sha256；缺檔之 sha256、大小、應放之位置(`cachePath` 為快取內之完整路徑，有設鏡像時另有 `mirrorPath`)與來源網址在錯誤物件之 `err.missing[]`(見下)。
 - 離線部署：
   1. 在可連網之電腦設 `W_BIN_CACHE=<空資料夾>`，執行一次 `ensureBins()`(或使用到 `WProcessStatus` 一次)。
   2. 把該資料夾整個帶到內網電腦，設 `W_BIN_MIRROR=<該資料夾>`(全離線時另設 `W_BIN_OFFLINE=1`)。
@@ -46,6 +46,22 @@ import ensureBins from 'w-process-status/src/ensureBins.mjs'
 //部署前預先取得, resolve回傳{ 'processStatus.exe': 絕對路徑 }
 let bins = await ensureBins()
 console.log(bins)
+```
+
+離線缺檔時之放置位置自 `err.missing[]` 讀取(`WProcessStatus` 取不到執行檔時，reject 之 Error 同樣帶 `code` 與 `missing`)：
+
+```alias
+import ensureBins from 'w-process-status/src/ensureBins.mjs'
+
+try {
+    await ensureBins()
+}
+catch (err) {
+    if (err.code === 'E_OFFLINE_MISSING') {
+        //err.missing[0]: { name, sha256, size, cachePath, mirrorPath, url, ... }，把 processStatus.exe 放在 cachePath(或 mirrorPath)
+        console.log(err.missing)
+    }
+}
 ```
 
 ## 回傳欄位與選項
